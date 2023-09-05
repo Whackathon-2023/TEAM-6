@@ -1,6 +1,10 @@
-const { Configuration, OpenAIAPI } = require('openai');
-require('dotenv').config();
-const { ActivityHandler, MessageFactory } = require('botbuilder');
+import { Configuration, OpenAIApi } from "openai";
+import { ActivityHandler, MessageFactory } from 'botbuilder';
+
+// Load dotenv
+import('dotenv/config').then(() => {
+  // Your dotenv variables are now loaded
+});
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -43,4 +47,5 @@ async function runCompletion(data) {
   return completion.data.choices[0].text;
 }
 
-module.exports.Hackathon = Hackathon;
+const _Hackathon = Hackathon;
+export { _Hackathon as Hackathon };

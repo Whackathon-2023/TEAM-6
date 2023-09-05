@@ -2,6 +2,7 @@
     "name": "teams-bot",
     "version": "1.0.0",
     "description": "Chats on Teams",
+    "type": "module",
     "author": "Generated using Microsoft Bot Builder Yeoman generator v4.17.0",
     "license": "MIT",
     "main": "index.js",
@@ -32,3 +33,4 @@
         "nodemon": "^2.0.4"
     }
 }
+

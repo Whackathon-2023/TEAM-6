@@ -1,29 +1,25 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-const path = require('path');
+import { join } from 'path';
 
-const dotenv = require('dotenv');
+import { config } from 'dotenv';
 // Import required bot configuration.
-const ENV_FILE = path.join(__dirname, '.env');
-dotenv.config({ path: ENV_FILE });
+const ENV_FILE = join(__dirname, '.env');
+config({ path: ENV_FILE });
 
-const restify = require('restify');
+import { createServer, plugins } from 'restify';
 
 // Import required bot services.
 // See https://aka.ms/bot-services to learn more about the different parts of a bot.
-const {
-    CloudAdapter,
-    ConfigurationServiceClientCredentialFactory,
-    createBotFrameworkAuthenticationFromConfiguration
-} = require('botbuilder');
+import { CloudAdapter, ConfigurationServiceClientCredentialFactory, createBotFrameworkAuthenticationFromConfiguration } from 'botbuilder';
 
 // This bot's main dialog.
-const { Hackathon } = require('./bot');
+import { Hackathon } from './bot.js';
 
 // Create HTTP server
-const server = restify.createServer();
-server.use(restify.plugins.bodyParser());
+const server = createServer();
+server.use(plugins.bodyParser());
 
 server.listen(process.env.port || process.env.PORT || 3978, () => {
     console.log(`\n${ server.name } listening to ${ server.url }`);
