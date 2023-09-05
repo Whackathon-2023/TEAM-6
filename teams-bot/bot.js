@@ -1,51 +1,32 @@
-import { Configuration, OpenAIApi } from "openai";
-import { ActivityHandler, MessageFactory } from 'botbuilder';
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
 
-// Load dotenv
-import('dotenv/config').then(() => {
-  // Your dotenv variables are now loaded
-});
+const { ActivityHandler, MessageFactory } = require('botbuilder');
 
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-const openai = new OpenAIAPI(configuration);
+class EchoBot extends ActivityHandler {
+    constructor() {
+        super();
+        // See https://aka.ms/about-bot-activity-message to learn more about the message and other activity types.
+        this.onMessage(async (context, next) => {
+            // const replyText = `did this update?: ${ context.activity.text }`;
+            const replyText = 'fuck you i hate humans';
+            await context.sendActivity(MessageFactory.text(replyText, replyText));
+            // By calling next() you ensure that the next BotHandler is run.
+            await next();
+        });
 
-class Hackathon extends ActivityHandler {
-  constructor() {
-    super();
-    this.onMessage(async (context, next) => {
-      const replyText = await botresponse(context.activity.text); 
-      await context.sendActivity(MessageFactory.text(replyText, replyText));
-      await next();
-    });
-
-    this.onMembersAdded(async (context, next) => {
-      const welcomeText = 'Welcome to Hackathon bot, #dubsonly';
-      const membersAdded = context.activity.membersAdded;
-      for (let cnt = 0; cnt < membersAdded.length; ++cnt) {
-        if (membersAdded[cnt].id !== context.activity.recipient.id) {
-          await context.sendActivity(MessageFactory.text(welcomeText, welcomeText));
-        }
-      }
-      await next();
-    });
-  }
+        this.onMembersAdded(async (context, next) => {
+            const membersAdded = context.activity.membersAdded;
+            const welcomeText = 'yoyo wassup';
+            for (let cnt = 0; cnt < membersAdded.length; ++cnt) {
+                if (membersAdded[cnt].id !== context.activity.recipient.id) {
+                    await context.sendActivity(MessageFactory.text(welcomeText, welcomeText));
+                }
+            }
+            // By calling next() you ensure that the next BotHandler is run.
+            await next();
+        });
+    }
 }
 
-async function botresponse(text) {
-  const response = await runCompletion(text);
-  return response;
-}
-
-async function runCompletion(data) {
-  const completion = await openai.createCompletion({
-    model: 'text-davinci-003',
-    prompt: data,
-    max_tokens: 100,
-  });
-  return completion.data.choices[0].text;
-}
-
-const _Hackathon = Hackathon;
-export { _Hackathon as Hackathon };
+module.exports.EchoBot = EchoBot;

@@ -1,25 +1,29 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { join } from 'path';
+const path = require('path');
 
-import { config } from 'dotenv';
+const dotenv = require('dotenv');
 // Import required bot configuration.
-const ENV_FILE = join(__dirname, '.env');
-config({ path: ENV_FILE });
+const ENV_FILE = path.join(__dirname, '.env');
+dotenv.config({ path: ENV_FILE });
 
-import { createServer, plugins } from 'restify';
+const restify = require('restify');
 
 // Import required bot services.
 // See https://aka.ms/bot-services to learn more about the different parts of a bot.
-import { CloudAdapter, ConfigurationServiceClientCredentialFactory, createBotFrameworkAuthenticationFromConfiguration } from 'botbuilder';
+const {
+    CloudAdapter,
+    ConfigurationServiceClientCredentialFactory,
+    createBotFrameworkAuthenticationFromConfiguration
+} = require('botbuilder');
 
 // This bot's main dialog.
-import { Hackathon } from './bot.js';
+const { EchoBot } = require('./bot');
 
 // Create HTTP server
-const server = createServer();
-server.use(plugins.bodyParser());
+const server = restify.createServer();
+server.use(restify.plugins.bodyParser());
 
 server.listen(process.env.port || process.env.PORT || 3978, () => {
     console.log(`\n${ server.name } listening to ${ server.url }`);
@@ -64,7 +68,7 @@ const onTurnErrorHandler = async (context, error) => {
 adapter.onTurnError = onTurnErrorHandler;
 
 // Create the main dialog.
-const myBot = new Hackathon();
+const myBot = new EchoBot();
 
 // Listen for incoming requests.
 server.post('/api/messages', async (req, res) => {
