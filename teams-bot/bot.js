@@ -1,32 +1,48 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-
 const { ActivityHandler, MessageFactory } = require('botbuilder');
+
+let fetch;
+import('node-fetch').then(module => {
+  fetch = module.default;
+});
+
 
 class EchoBot extends ActivityHandler {
     constructor() {
         super();
-        // See https://aka.ms/about-bot-activity-message to learn more about the message and other activity types.
         this.onMessage(async (context, next) => {
-            // const replyText = `did this update?: ${ context.activity.text }`;
-            const replyText = 'fuck you i hate humans';
+            const userText = context.activity.text;
+            const replyText = await fetchResponseFromPython(userText);
             await context.sendActivity(MessageFactory.text(replyText, replyText));
-            // By calling next() you ensure that the next BotHandler is run.
             await next();
         });
 
         this.onMembersAdded(async (context, next) => {
-            const membersAdded = context.activity.membersAdded;
             const welcomeText = 'yoyo wassup';
+            const membersAdded = context.activity.membersAdded;
             for (let cnt = 0; cnt < membersAdded.length; ++cnt) {
                 if (membersAdded[cnt].id !== context.activity.recipient.id) {
                     await context.sendActivity(MessageFactory.text(welcomeText, welcomeText));
                 }
             }
-            // By calling next() you ensure that the next BotHandler is run.
             await next();
         });
     }
+}
+
+async function fetchResponseFromPython(userText) {
+    // Send text to Python server
+    await fetch('http://127.0.0.1:5000/send_text', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ content: userText })
+    });
+
+    // Fetch the response from Python server
+    const response = await fetch('http://127.0.0.1:5000/get_response');
+    const data = await response.json();
+    return data.response;
 }
 
 module.exports.EchoBot = EchoBot;
