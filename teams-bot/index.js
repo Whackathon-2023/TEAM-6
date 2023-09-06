@@ -15,7 +15,8 @@ const restify = require('restify');
 const {
     CloudAdapter,
     ConfigurationServiceClientCredentialFactory,
-    createBotFrameworkAuthenticationFromConfiguration
+    createBotFrameworkAuthenticationFromConfiguration,
+    BotFrameworkAdapter
 } = require('botbuilder');
 
 // This bot's main dialog.
@@ -32,17 +33,25 @@ server.listen(process.env.port || process.env.PORT || 3978, () => {
 });
 
 const credentialsFactory = new ConfigurationServiceClientCredentialFactory({
-    MicrosoftAppId: process.env.MicrosoftAppId,
-    MicrosoftAppPassword: process.env.MicrosoftAppPassword,
-    MicrosoftAppType: process.env.MicrosoftAppType,
-    MicrosoftAppTenantId: process.env.MicrosoftAppTenantId
+    MicrosoftAppId: '8eb6940c-5400-4830-95fc-0de223520b6a',
+    MicrosoftAppPassword: 'W8t8Q~_Giz1sac3WZwYGrjYYOyeWmD1aqXFexcgV',
+    MicrosoftAppType: 'MultiTenant',
+    MicrosoftAppTenantId: '02aa3044-670b-4a36-922b-2b2127b2e065',
 });
+
+
 
 const botFrameworkAuthentication = createBotFrameworkAuthenticationFromConfiguration(null, credentialsFactory);
 
 // Create adapter.
 // See https://aka.ms/about-bot-adapter to learn more about adapters.
 const adapter = new CloudAdapter(botFrameworkAuthentication);
+
+// const adapter = new BotFrameworkAdapter({
+//     appId: '8eb6940c-5400-4830-95fc-0de223520b6a',
+//     appPassword: 'tHE8Q~eKYfn2QKY5lHhiUYgv1OaZgYmJ8w_J1b1p',
+// })
+
 
 // Catch-all for errors.
 const onTurnErrorHandler = async (context, error) => {
@@ -71,7 +80,7 @@ adapter.onTurnError = onTurnErrorHandler;
 const myBot = new EchoBot();
 
 // Listen for incoming requests.
-server.post('/api/messages', async (req, res) => {
+server.post('/api/messages', async (req, res)  => {
     // Route received a request to adapter for processing
     await adapter.process(req, res, (context) => myBot.run(context));
 });

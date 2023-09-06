@@ -11,13 +11,14 @@ class EchoBot extends ActivityHandler {
         super();
         this.onMessage(async (context, next) => {
             const userText = context.activity.text;
-            const replyText = await fetchResponseFromPython(userText);
+            // const replyText = await fetchResponseFromPython(userText);
+            let replyText = 'I am working.'
             await context.sendActivity(MessageFactory.text(replyText, replyText));
             await next();
         });
 
         this.onMembersAdded(async (context, next) => {
-            const welcomeText = 'yoyo wassup';
+            const welcomeText = 'I am alive';
             const membersAdded = context.activity.membersAdded;
             for (let cnt = 0; cnt < membersAdded.length; ++cnt) {
                 if (membersAdded[cnt].id !== context.activity.recipient.id) {
