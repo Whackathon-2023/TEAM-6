@@ -34,7 +34,7 @@ server.listen(process.env.port || process.env.PORT || 3978, () => {
 
 const credentialsFactory = new ConfigurationServiceClientCredentialFactory({
   MicrosoftAppId: "8eb6940c-5400-4830-95fc-0de223520b6a",
-  MicrosoftAppPassword: "",
+  MicrosoftAppPassword: "W8t8Q~_Giz1sac3WZwYGrjYYOyeWmD1aqXFexcgV",
   MicrosoftAppType: "",
   MicrosoftAppTenantId: ""
 });
