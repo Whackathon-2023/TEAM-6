@@ -1,5 +1,8 @@
 const { ActivityHandler, ActionTypes, ActivityTypes, CardFactory, MessageFactory } = require('botbuilder');
 
+// we only send images so this can be a constant
+const contentType = 'image/png';
+
 
 // current objective get a random image link sending to the bot
 
@@ -8,6 +11,7 @@ import('node-fetch').then(module => {
   fetch = module.default;
 });
 
+
 class ATGENIE extends ActivityHandler {
     constructor() {
         super();
@@ -15,9 +19,14 @@ class ATGENIE extends ActivityHandler {
             const userText = context.activity.text;
             console.log(`User text is ${userText}`);
 
+            const replyText = await fetchResponseFromPython(userText);
+
             const reply = { type: ActivityTypes.Message };
-            reply.text = 'FUCK YEA SENDING PHOTOS WORKS';
-            reply.attachments = [this.getInternetAttachment()];
+            reply.text = replyText;
+            if(replyText.url){
+                reply.attachments = [this.getInternetAttachment(replyText.name, contentType, replyText.url)];
+            }
+            // this will be blank if theres no image if theres an image 
 
             const typing = {
                 type: 'typing',
@@ -28,7 +37,6 @@ class ATGENIE extends ActivityHandler {
             // make the bot start typing
             // not sure if this will work couldn't find the docs
             context.sendActivity(typing);
-            await new Promise(resolve => setTimeout(resolve, 10000));
             // await context.sendActivity(MessageFactory.text(replyText, replyText));
             await context.sendActivity(reply);
             await next();
@@ -50,11 +58,11 @@ class ATGENIE extends ActivityHandler {
 
     }
 
-    getInternetAttachment() {
+    getInternetAttachment(nameOfThing, contentType, contentUrl) {
         return {
-            name: 'testing.png',
-            contentType: 'image/png',
-            contentUrl: 'https://cms.hugofox.com//resources/images/a0fea022-8ec7-4a37-b4e7-214846e7656f.jpg'
+            name: nameOfThing,
+            contentType: contentType,
+            contentUrl: contentUrl
         };
     }
 }
@@ -76,27 +84,9 @@ async function fetchResponseFromPython(userText) {
     const data = await response.json();
     if(data.type == 'image'){
         // do stuff here
+        // send image attachment as well as make content italics and bold
         console.log('Recieved an image going to send an image now')
-        const img = new Image();
-        // img.src = data.image;
-        img.src = 'https://cms.hugofox.com//resources/images/a0fea022-8ec7-4a37-b4e7-214846e7656f.jpg';
-        const formData = new FormData();
-        formData.append('image', img.src);
-        fetch('https://your-bot-url.com/api/messages', {
-        method: 'POST',
-        headers: {
-            'Authorization': 'Bearer <your-bot-secret>',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            type: 'message',
-            attachments: [{
-            contentType: 'image/jpeg',
-            contentUrl: img.src,
-            name: 'image.jpg'
-            }]
-        })
-        });
+        
     }
     console.log(`Recieved data from flask server json data is ${data}`);
     console.log(`Text response to give user is ${data.content}`)
