@@ -11,14 +11,14 @@ class EchoBot extends ActivityHandler {
         super();
         this.onMessage(async (context, next) => {
             const userText = context.activity.text;
-            // const replyText = await fetchResponseFromPython(userText);
-            let replyText = 'I am working.'
+            const replyText = await fetchResponseFromPython(userText);
+            //let replyText = 'I am working.'
             await context.sendActivity(MessageFactory.text(replyText, replyText));
             await next();
         });
 
         this.onMembersAdded(async (context, next) => {
-            const welcomeText = 'I am alive';
+            const welcomeText = 'I am so close to working';
             const membersAdded = context.activity.membersAdded;
             for (let cnt = 0; cnt < membersAdded.length; ++cnt) {
                 if (membersAdded[cnt].id !== context.activity.recipient.id) {
@@ -32,18 +32,20 @@ class EchoBot extends ActivityHandler {
 
 async function fetchResponseFromPython(userText) {
     // Send text to Python server
-    await fetch('http://127.0.0.1:5000/send_text', {
+    console.log(`Sending text to Python server: ${userText}`)
+    const response = await fetch('http://127.0.0.1:5000/question', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ content: userText })
+        body: JSON.stringify({ question: userText })
     });
 
     // Fetch the response from Python server
-    const response = await fetch('http://127.0.0.1:5000/get_response');
     const data = await response.json();
-    return data.response;
+    console.log(`Recieved data from flask server json data is ${data}`);
+    console.log(`Response to give user is ${data.content.flat(Infinity).join('')}`)
+    return data.content.flat(Infinity).join('');
 }
 
 module.exports.EchoBot = EchoBot;
