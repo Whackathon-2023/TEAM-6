@@ -2,3 +2,4 @@ node_modules
 .env
 flask-server\issue_description_embeddings.json
 flask-server\.env
+flask-server\__pycache__
