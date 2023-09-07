@@ -105,8 +105,6 @@ def question():
         return jsonify({"content": "I don't know how to answer that question."})
 
 # Alana chose the name of the function
-
-
 def uhhh_like_umm_reviewing_the_question(question):
     structure = [
         {

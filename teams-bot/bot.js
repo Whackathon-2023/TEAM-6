@@ -6,11 +6,12 @@ import('node-fetch').then(module => {
 });
 
 
-class EchoBot extends ActivityHandler {
+class ATGENIE extends ActivityHandler {
     constructor() {
         super();
         this.onMessage(async (context, next) => {
             const userText = context.activity.text;
+            console.log(`User text is ${userText}`)
             const replyText = await fetchResponseFromPython(userText);
             //let replyText = 'I am working.'
             await context.sendActivity(MessageFactory.text(replyText, replyText));
@@ -48,4 +49,4 @@ async function fetchResponseFromPython(userText) {
     return data.content.flat(Infinity).join('');
 }
 
-module.exports.EchoBot = EchoBot;
+module.exports.ATGENIE = ATGENIE;

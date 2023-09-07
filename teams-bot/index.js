@@ -20,7 +20,7 @@ const {
 } = require('botbuilder');
 
 // This bot's main dialog.
-const { EchoBot } = require('./bot');
+const { ATGENIE } = require('./bot');
 
 // Create HTTP server
 const server = restify.createServer();
@@ -77,7 +77,7 @@ const onTurnErrorHandler = async (context, error) => {
 adapter.onTurnError = onTurnErrorHandler;
 
 // Create the main dialog.
-const myBot = new EchoBot();
+const myBot = new ATGENIE();
 
 // Listen for incoming requests.
 server.post('/api/messages', async (req, res)  => {
