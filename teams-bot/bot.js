@@ -18,16 +18,6 @@ class ATGENIE extends ActivityHandler {
         this.onMessage(async (context, next) => {
             const userText = context.activity.text;
             console.log(`User text is ${userText}`);
-
-            const replyText = await fetchResponseFromPython(userText);
-
-            const reply = { type: ActivityTypes.Message };
-            reply.text = replyText;
-            if(replyText.url){
-                reply.attachments = [this.getInternetAttachment(replyText.name, contentType, replyText.url)];
-            }
-            // this will be blank if theres no image if theres an image 
-
             const typing = {
                 type: 'typing',
                 from: {id: 'bot-id'},
@@ -36,14 +26,29 @@ class ATGENIE extends ActivityHandler {
             }
             // make the bot start typing
             // not sure if this will work couldn't find the docs
-            context.sendActivity(typing);
+            context.sendActivity(typing); 
+
+            const response = await fetchResponseFromPython(userText);
+            const replyText = response.content;
+            const url = response.url;
+
+            const reply = { type: ActivityTypes.Message };
+            if(url){
+                reply.attachments = [this.getInternetAttachment(replyText.name, contentType, url)];
+                
+            }
+            reply.text = "****" + replyText + "****";
+ 
+            // this will be blank if theres no image if theres an image 
+
+            
             // await context.sendActivity(MessageFactory.text(replyText, replyText));
             await context.sendActivity(reply);
             await next();
         });
 
         this.onMembersAdded(async (context, next) => {
-            const welcomeText = "## Hey there, I'm service Genie\n# Here are some things I can do:\n- Find similar tickets\n- Give insights into service desk members\n- Retrieve or summarize data from old tickets\n- Send me a message to get started!";
+            const welcomeText = "## Hey there, I'm ATGENIE\n# Here are some things I can do:\n- Find similar tickets\n- Give insights into service desk members\n- Retrieve or summarize data from old tickets\n- Send me a message to get started!";
 
             const membersAdded = context.activity.membersAdded;
             for (let cnt = 0; cnt < membersAdded.length; ++cnt) {
@@ -85,12 +90,12 @@ async function fetchResponseFromPython(userText) {
     if(data.type == 'image'){
         // do stuff here
         // send image attachment as well as make content italics and bold
-        console.log('Recieved an image going to send an image now')
+        console.log('Received an image going to send an image now')
         
     }
-    console.log(`Recieved data from flask server json data is ${data}`);
+    console.log(`Received data from flask server json data is ${data}`);
     console.log(`Text response to give user is ${data.content}`)
-    return data.content;
+    return data;
     
     }
 

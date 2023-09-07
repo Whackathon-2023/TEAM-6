@@ -1,16 +1,22 @@
+import pandas as pd
 import matplotlib.pyplot as plt
 
-# Data
-names = ['Adam Ward', 'Devin Roberts', 'Diana Jimenez', 'Erin Porter', 'Heidi Vance', 'James Sheppard', 'Joel Johnson', 'John Brown', 'John Rich', 'Kimberly House', 'Matthew Hutchinson', 'Michael Williams', 'Shannon Newman', 'Sonya Luna', 'Stephen Haney']
-tickets_resolved = [1743, 1713, 1729, 1743, 1818, 1817, 1802, 1735, 1764, 1782, 1770, 1732, 1743, 1810, 1763]
+# Load the dataset
+jira_data = pd.read_csv('JIRA_ITSD_FY23_FULL.csv')
 
-# Creating bar chart
-plt.bar(names, tickets_resolved, color = 'blue')
-plt.xlabel('Names')
-plt.ylabel('Tickets Resolved')
-plt.title('Number of Tickets Resolved by Each Person')
-plt.xticks(rotation=45)
-plt.tight_layout()
+# Filter the data to only consider 'Resolved' tickets
+resolved_tickets = jira_data[jira_data['Status'] == 'Resolved']
 
-# Save the figure
-plt.savefig('tickets_resolved.png')
+# Count the number of tickets for each category
+ticket_counts = resolved_tickets['Issue_Type'].value_counts()
+
+# Create the log-linear graph
+plt.figure(figsize=(10,6))
+plt.bar(ticket_counts.index, ticket_counts.values)
+plt.yscale('log')
+plt.xlabel('Issue Types')
+plt.ylabel('Counts')
+plt.title('Log-Linear Plot of Issue Types vs Counts')
+plt.xticks(rotation=90)
+plt.grid(True)
+plt.savefig('issue_type_distribution.png')
