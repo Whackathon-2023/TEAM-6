@@ -370,12 +370,6 @@ def create_conversational_response(result,question,additional_content):
     - Friendly but professional
     - Quick to assist but thorough in explanations
 
-    Good Response Example:
-    "Yes, there are **4 unresolved tickets** as of now."
-
-    Bad Response Example:
-    "There are 4 tickets that are yet to be resolved."
-
     Your task is to turn the result into a Service Genie-approved, Markdown-structured, conversational response to the user's question: `{question}`
     """
 
