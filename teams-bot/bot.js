@@ -19,7 +19,7 @@ class ATGENIE extends ActivityHandler {
         });
 
         this.onMembersAdded(async (context, next) => {
-            const welcomeText = 'I am so close to working';
+            const welcomeText = 'Welcome, I am ATGenie ask me anything about service tickets';
             const membersAdded = context.activity.membersAdded;
             for (let cnt = 0; cnt < membersAdded.length; ++cnt) {
                 if (membersAdded[cnt].id !== context.activity.recipient.id) {
@@ -46,6 +46,7 @@ async function fetchResponseFromPython(userText) {
     const data = await response.json();
     console.log(`Recieved data from flask server json data is ${data}`);
     console.log(`Response to give user is ${data.content.flat(Infinity).join('')}`)
+    // data sometimes comes in weird formats like nested arrays flatten just flattens it out and .join makes it a string
     return data.content.flat(Infinity).join('');
 }
 
