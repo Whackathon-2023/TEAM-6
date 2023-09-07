@@ -38,7 +38,7 @@ today = date.today()
 
 schema = '''
 {"JIRA_ITSD_FY23_FULL":[{"Column Name":"Summary","Data Type":"TEXT"},{"Column Name":"Issue_key","Data Type":"TEXT"},{"Column Name":"Issue_id","Data Type":"REAL"},{"Column Name":"Issue_Type","Data Type":"TEXT","Enumerations":["Service Request","Purchase","Incident","Access","Change","Problem"],"Comments":"This is an enumerated field."},{"Column Name":"Status","Data Type":"TEXT","Enumerations":["Resolved","With Support","New","Procuring","With Approver","With Customer","Approved","Configuring"],"Comments":"This is an enumerated field."},{"Column Name":"Project_key","Data Type":"TEXT","Enumerations":["ITSD"],"Comments":"This is an enumerated field."},{"Column Name":"Project_name","Data Type":"TEXT","Enumerations":["IT Service Desk"],"Comments":"This is an enumerated field."},{"Column Name":"Priority","Data Type":"TEXT","Enumerations":["Low","High","Medium","Highest","Lowest","Blocker"],"Comments":"This is an enumerated field."},{"Column Name":"Resolution","Data Type":"TEXT","Enumerations":["Done","Withdrawn","Won't Do","Duplicate","Cannot Reproduce","Declined","Deferred","Rejected","Failed"],"Comments":"This is an enumerated field."},{"Column Name":"Assignee","Data Type":"TEXT"},{"Column Name":"Reporter","Data Type":"TEXT"},{"Column Name":"Creator","Data Type":"TEXT"},{"Column Name":"Created","Data Type":"TIMESTAMP"},{"Column Name":"Updated","Data Type":"TIMESTAMP"},{"Column Name":"Last_Viewed","Data Type":"TIMESTAMP"},{"Column Name":"Resolved","Data Type":"TIMESTAMP"},{"Column Name":"Component_s","Data Type":"TEXT"},{"Column Name":"Labels","Data Type":"TEXT"},{"Column Name":"Labels_1","Data Type":"TEXT"},{"Column Name":"Labels_2","Data Type":"TEXT"},{"Column Name":"Labels_3","Data Type":"TEXT","Enumerations":["Spoof","SOC-Incidents","PhishingIncident","ThirdPartyCyberIncident","NoMFAloginIncident","Spark","SuspiciousActivity","HybridSOC-Escalations"],"Comments":"This is an enumerated field."},{"Column Name":"Labels_4","Data Type":"TEXT","Enumerations":["Upguard","Spoof","PhishingIncident"],"Comments":"This is an enumerated field."},{"Column Name":"Custom_field_Access_Type","Data Type":"TEXT","Enumerations":["Contractor Extension","Contractor","AD Group"],"Comments":"This is an enumerated field."},{"Column Name":"Custom_field_Account","Data Type":"TEXT"},{"Column Name":"Custom_field_Activity","Data Type":"TEXT","Enumerations":["IT","Sales"],"Comments":"This is an enumerated field."},{"Column Name":"Custom_field_Assignment_Group","Data Type":"TEXT"},{"Column Name":"Custom_field_Business_Unit","Data Type":"TEXT","Enumerations":["Fertilisers","Shared Services","Kleenheat","Australian Vinyls","Chemicals","Decipher"],"Comments":"This is an enumerated field."},{"Column Name":"Custom_field_Category","Data Type":"TEXT","Enumerations":["User Access","Client Application","Computer","Mobile Device","Business System","Peripheral Device","Cyber Security","Server Infrastructure","Network"],"Comments":"This is an enumerated field."},{"Column Name":"Custom_field_ReporterBU","Data Type":"TEXT","Enumerations":["Company: Fertilisers, ","Company: Sodium Cyanide, ","Company: Shared Services, ","Company: Kleenheat, ","Company: Ammonia/AN, ","Company: Support Services, ","Company: Australian Vinyls, ","Company: Chemicals, ","Company: Decipher, "],"Comments":"This is an enumerated field."},{"Column Name":"Custom_field_ReporterDivision","Data Type":"TEXT"}]}
-Tickets are considered closed only when their status is 'Resolved.', AVG(JULIANDAY(Resolved) - JULIANDAY(Created)) will return the average number of days it takes to resolve a ticket. The assignee is the person who is currently assigned to the ticket. The reporter is the person who reported the ticket. The creator is the person who created the ticket.
+Tickets are considered closed only when their status is 'Resolved.', AVG(JULIANDAY(Resolved) - JULIANDAY(Created)) will return the average number of days it takes to resolve a ticket. The assignee is the person who is currently assigned to the ticket. The reporter is the person who reported the ticket. The creator is the person who created the ticket. 
 The current date is ''' + str(today)
 
 app = Flask(__name__)
@@ -80,9 +80,7 @@ def question():
             return jsonify({"content": "I don't know how to answer that question.","error": "No results were returned from the database."})
         print(f"Result: {result}")
         # Turn into conversational response formatted as markdown
-        conversational_response = create_conversational_response(
-            result, question, '')
-        return jsonify({"content": conversational_response})
+        return jsonify({"content": result})
 
     elif function == "extract_ticket_id_for_similarity_search":
         # We want to perform an vector similarity search
@@ -113,24 +111,17 @@ def question():
             print("I don't know how to answer that question.")
             return jsonify({"content": "I don't know how to answer that question."})
         most_similar = get_most_similar(
-            ticket_description, embedding, embeddings, 2)
+            ticket_description, embedding, embeddings, 3)
         print(f"Most similar tickets: {most_similar}")
         result = select_tickets(most_similar)
         print(f"Result: {result}")
         # Return the top tickets as markdown, along with a conversational response
-        conversational_response = create_conversational_response(
-            result, question, '')
-        return jsonify({"content": conversational_response})
+        return jsonify({"content": result})
 
     else:
         print("I don't know how to answer that question.")
-<<<<<<< HEAD
         return jsonify({"content": "I don't know how to answer that question."})
     # return jsonify({"content": "I don't know how to answer that question."})
-=======
-        return jsonify({"content": "I don't know how to answer that question.","error": "No function was called."})
-    return jsonify({"content": "I don't know how to answer that question."})
->>>>>>> a3a30e7f0e5e6691440202fbe294188ad686b991
     
 def generate_sql_for_fixed_columns(question):
     structure = [
@@ -158,14 +149,6 @@ def generate_sql_for_fixed_columns(question):
     ```
     {schema}
     ```
-
-    Question: 
-    Who has answered the least amount tickets?
-    We would find the person who has the least amount of tickets resolved tickets assigned to them.
-    
-    What is the average number of days it takes to resolve a ticket?
-    We would find the average number of days it takes to resolve a ticket by taking the average of the difference between the resolved date and the created date.
-
     GOAL:
     You are Service Genie, an IT chatbot tthat calls functions to help answer a users question: `{question}`
     """
@@ -359,46 +342,6 @@ def decide_function_call(question):
         print(e)
         return None
 
-def create_conversational_response(result,question,additional_content):
-    # Turn into conversational response formatted as markdown
-    prompt = f"""
-    Result: {result}
-    {additional_content}
-    {question}
-
-    GOAL:
-    You are Service Genie, the friendly and knowledgeable IT chatbot. Your ultimate aim is to assist users in resolving their IT issues quickly and efficiently. You make technical issues less intimidating by using a conversational tone, laced with light humor where appropriate. You structure your responses using Markdown to make them easy to read.
-
-    Attributes:
-    - Knowledgeable but not condescending
-    - Friendly but professional
-    - Quick to assist but thorough in explanations
-
-    Good Response Example:
-    "Yes, there are **4 unresolved tickets** as of now."
-
-    Bad Response Example:
-    "There are 4 tickets that are yet to be resolved."
-
-    Your task is to turn the result `{result}` into a Service Genie-approved, Markdown-structured, conversational response to the user's question: `{question}`
-    """
-
-    messages = [
-        {"role": "user", "content": prompt},
-    ]
-
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=messages,
-    )
-
-    try:
-        print(response.choices[0])
-        return response.choices[0].text
-    except Exception as e:
-        print(e)
-        return None
-
 
 DATABASE_PATH = "database.db"
 
@@ -449,8 +392,6 @@ def get_most_similar(original_ticket_id, embedding, embeddings, n):
     return [issue_id for issue_id, _ in most_similar]
 
 # Improve this by not selecting all columns
-
-
 def select_tickets(ticket_ids):
     results = []
     for ticket_id in ticket_ids:
