@@ -13,6 +13,10 @@ class ATGENIE extends ActivityHandler {
             console.log(`User text is ${userText}`)
             const replyText = await fetchResponseFromPython(userText);
             //let replyText = 'I am working.'
+            // if starts with a tab, remove it
+            if (replyText.startsWith('\t')) {
+                replyText = replyText.substring(1);
+            }
             await context.sendActivity(MessageFactory.text(replyText, replyText));
             await next();
         });

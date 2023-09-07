@@ -172,8 +172,8 @@ def generate_sql_for_fixed_columns(question):
 
     response = openai.ChatCompletion.create(
         # model="gpt-3.5-turbo-16k-0613",
-        model="gpt-3.5-turbo-0613",
-        # model="gpt-4-0613",
+        #model="gpt-3.5-turbo-0613",
+        model="gpt-4-0613",
         messages=messages,
         functions=structure,
         function_call={
@@ -226,8 +226,8 @@ def extract_ticket_id_for_similarity_search(question):
 
     response = openai.ChatCompletion.create(
         # model="gpt-3.5-turbo-16k-0613",
-        model="gpt-3.5-turbo-0613",
-        # model="gpt-4-0613",
+        #model="gpt-3.5-turbo-0613",
+        model="gpt-4-0613",
         messages=messages,
         functions=structure,
         function_call={
@@ -279,8 +279,8 @@ def extract_description_and_find_similarity(question):
 
     response = openai.ChatCompletion.create(
         # model="gpt-3.5-turbo-16k-0613",
-        model="gpt-3.5-turbo-0613",
-        # model="gpt-4-0613",
+        #model="gpt-3.5-turbo-0613",
+        model="gpt-4-0613",
         messages=messages,
         functions=structure,
         function_call={
@@ -308,7 +308,7 @@ def decide_function_call(question):
                 "properties": {
                     "function_name": {
                         "type": "string",
-                        "enum": ["generate_sql_for_fixed_columns", "extract_ticket_id_for_similarity_search", "extract_description_and_find_similarity", "no_functon_called"],
+                        "enum": ["generate_sql_for_fixed_columns", "extract_ticket_id_for_similarity_search", "extract_description_and_find_similarity"],
                         "description": "The name of the function that will be called to answer the user's question."
                     },
                 }
@@ -332,10 +332,6 @@ def decide_function_call(question):
     Justification: The user describes a problem in natural language without referring to a specific ticket ID or database column. The problem description needs to be extracted, possibly cleaned up, and converted into an embedding for a similarity search.
     GOAL:
     You are Service Genie, an IT chatbot that calls functions to help answer a users question: `{question}`
-
-    Example Question: What is the capital of Spain?
-    Function called: no_function_called
-    Justification: This question has nothing to do with service tickets or the service desk. We can't answer this question.
     """
 
     print(prompt)
@@ -346,8 +342,8 @@ def decide_function_call(question):
 
     response = openai.ChatCompletion.create(
         # model="gpt-3.5-turbo-16k-0613",
-        model="gpt-3.5-turbo-0613",
-        # model="gpt-4-0613",
+        #model="gpt-3.5-turbo-0613",
+        model="gpt-4-0613",
         messages=messages,
         functions=structure,
         function_call={
