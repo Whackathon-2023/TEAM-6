@@ -70,13 +70,8 @@ def question():
     function = decide_function_call(question)
     print(f"Function called: {function}")
     if function == None:
-<<<<<<< HEAD
-        return jsonify({"content": "I don't know how to answer that question. Try rephrasing the question?","error": "No function was called."})
-    
-=======
         return jsonify({"content": "I don't know how to answer that question.", "error": "No function was called."})
 
->>>>>>> 7058c4d54583259a7f4bfd226982313b027d1c10
     elif function == "generate_sql_for_fixed_columns":
         result = generate_sql_for_fixed_columns(question)
         if result is None:
@@ -180,11 +175,6 @@ def question():
 
     else:
         print("I don't know how to answer that question.")
-<<<<<<< HEAD
-        return jsonify({"content": "I don't know how to answer that question.","error": "No function was called."})
-    
-    
-=======
         return jsonify({"content": "I don't know how to answer that question.", "error": "No function was called."})
     return jsonify({"content": "I don't know how to answer that question."})
 
@@ -297,7 +287,6 @@ def explanation_query(question):
         return None
 
 
->>>>>>> 7058c4d54583259a7f4bfd226982313b027d1c10
 def generate_sql_for_fixed_columns(question):
     structure = [
         {
