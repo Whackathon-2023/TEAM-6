@@ -82,6 +82,7 @@ def question():
         # Turn into conversational response formatted as markdown
         conversational_response = create_conversational_response(
             result, question, '')
+        print(f"Conversational Response: {conversational_response}")
         return jsonify({"content": conversational_response})
 
     elif function == "extract_ticket_id_for_similarity_search":
@@ -388,8 +389,9 @@ def create_conversational_response(result,question,additional_content):
     )
 
     try:
-        print(response.choices[0])
-        return response.choices[0].text
+        content = response['choices'][0]['message']['content']
+        print(f"Conversational Response: {content}")
+        return content
     except Exception as e:
         print(e)
         return None
