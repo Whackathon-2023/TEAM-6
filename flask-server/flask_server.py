@@ -39,6 +39,7 @@ today = date.today()
 schema = '''
 {"JIRA_ITSD_FY23_FULL":[{"Column Name":"Summary","Data Type":"TEXT"},{"Column Name":"Issue_key","Data Type":"TEXT"},{"Column Name":"Issue_id","Data Type":"REAL"},{"Column Name":"Issue_Type","Data Type":"TEXT","Enumerations":["Service Request","Purchase","Incident","Access","Change","Problem"],"Comments":"This is an enumerated field."},{"Column Name":"Status","Data Type":"TEXT","Enumerations":["Resolved","With Support","New","Procuring","With Approver","With Customer","Approved","Configuring"],"Comments":"This is an enumerated field."},{"Column Name":"Project_key","Data Type":"TEXT","Enumerations":["ITSD"],"Comments":"This is an enumerated field."},{"Column Name":"Project_name","Data Type":"TEXT","Enumerations":["IT Service Desk"],"Comments":"This is an enumerated field."},{"Column Name":"Priority","Data Type":"TEXT","Enumerations":["Low","High","Medium","Highest","Lowest","Blocker"],"Comments":"This is an enumerated field."},{"Column Name":"Resolution","Data Type":"TEXT","Enumerations":["Done","Withdrawn","Won't Do","Duplicate","Cannot Reproduce","Declined","Deferred","Rejected","Failed"],"Comments":"This is an enumerated field."},{"Column Name":"Assignee","Data Type":"TEXT"},{"Column Name":"Reporter","Data Type":"TEXT"},{"Column Name":"Creator","Data Type":"TEXT"},{"Column Name":"Created","Data Type":"TIMESTAMP"},{"Column Name":"Updated","Data Type":"TIMESTAMP"},{"Column Name":"Last_Viewed","Data Type":"TIMESTAMP"},{"Column Name":"Resolved","Data Type":"TIMESTAMP"},{"Column Name":"Component_s","Data Type":"TEXT"},{"Column Name":"Labels","Data Type":"TEXT"},{"Column Name":"Labels_1","Data Type":"TEXT"},{"Column Name":"Labels_2","Data Type":"TEXT"},{"Column Name":"Labels_3","Data Type":"TEXT","Enumerations":["Spoof","SOC-Incidents","PhishingIncident","ThirdPartyCyberIncident","NoMFAloginIncident","Spark","SuspiciousActivity","HybridSOC-Escalations"],"Comments":"This is an enumerated field."},{"Column Name":"Labels_4","Data Type":"TEXT","Enumerations":["Upguard","Spoof","PhishingIncident"],"Comments":"This is an enumerated field."},{"Column Name":"Custom_field_Access_Type","Data Type":"TEXT","Enumerations":["Contractor Extension","Contractor","AD Group"],"Comments":"This is an enumerated field."},{"Column Name":"Custom_field_Account","Data Type":"TEXT"},{"Column Name":"Custom_field_Activity","Data Type":"TEXT","Enumerations":["IT","Sales"],"Comments":"This is an enumerated field."},{"Column Name":"Custom_field_Assignment_Group","Data Type":"TEXT"},{"Column Name":"Custom_field_Business_Unit","Data Type":"TEXT","Enumerations":["Fertilisers","Shared Services","Kleenheat","Australian Vinyls","Chemicals","Decipher"],"Comments":"This is an enumerated field."},{"Column Name":"Custom_field_Category","Data Type":"TEXT","Enumerations":["User Access","Client Application","Computer","Mobile Device","Business System","Peripheral Device","Cyber Security","Server Infrastructure","Network"],"Comments":"This is an enumerated field."},{"Column Name":"Custom_field_ReporterBU","Data Type":"TEXT","Enumerations":["Company: Fertilisers, ","Company: Sodium Cyanide, ","Company: Shared Services, ","Company: Kleenheat, ","Company: Ammonia/AN, ","Company: Support Services, ","Company: Australian Vinyls, ","Company: Chemicals, ","Company: Decipher, "],"Comments":"This is an enumerated field."},{"Column Name":"Custom_field_ReporterDivision","Data Type":"TEXT"}]}
 Tickets are considered closed only when their status is 'Resolved.', AVG(JULIANDAY(Resolved) - JULIANDAY(Created)) will return the average number of days it takes to resolve a ticket. The assignee is the person who is currently assigned to the ticket. The reporter is the person who reported the ticket. The creator is the person who created the ticket.
+The important fields are Summary, Status, Assignee, Reporter, Created, Custom_field_ReporterBU, Custom_field_ReporterDivision
 The current date is ''' + str(today)
 
 app = Flask(__name__)
@@ -74,14 +75,16 @@ def question():
         if result is None:
             return jsonify({"content": "I don't know how to answer that question.","error": "No SQL query was generated."})
         query_string = result['query_string']
-
+        explanation = result['explanation']
+        print(f"SQL Query: {query_string}")
+        print(f"Explanation: {explanation}")
         result = query_database(query_string)  # Can return None
         if result is None:
             return jsonify({"content": "I don't know how to answer that question.","error": "No results were returned from the database."})
         print(f"Result: {result}")
         # Turn into conversational response formatted as markdown
         conversational_response = create_conversational_response(
-            result, question, '')
+            result, question, f"SQL Query: {query_string}")
         print(f"Conversational Response: {conversational_response}")
         return jsonify({"content": conversational_response})
 
@@ -155,15 +158,8 @@ def generate_sql_for_fixed_columns(question):
     {schema}
     ```
 
-    Question: 
-    Who has answered the least amount tickets?
-    We would find the person who has the least amount of tickets resolved tickets assigned to them.
-    
-    What is the average number of days it takes to resolve a ticket?
-    We would find the average number of days it takes to resolve a ticket by taking the average of the difference between the resolved date and the created date.
-
     GOAL:
-    You are Service Genie, an IT chatbot tthat calls functions to help answer a users question: `{question}`
+    You are Service Genie, an IT chatbot that calls functions to help answer a users question: `{question}`
     """
 
     messages = [
@@ -171,8 +167,9 @@ def generate_sql_for_fixed_columns(question):
     ]
 
     response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo-16k-0613",
-        # model="gpt-3.5-turbo-0613",
+        # model="gpt-3.5-turbo-16k-0613",
+        model="gpt-3.5-turbo-0613",
+        # model="gpt-4-0613",
         messages=messages,
         functions=structure,
         function_call={
@@ -224,8 +221,9 @@ def extract_ticket_id_for_similarity_search(question):
     ]
 
     response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo-16k-0613",
-        # model="gpt-3.5-turbo-0613",
+        # model="gpt-3.5-turbo-16k-0613",
+        model="gpt-3.5-turbo-0613",
+        # model="gpt-4-0613",
         messages=messages,
         functions=structure,
         function_call={
@@ -276,8 +274,9 @@ def extract_description_and_find_similarity(question):
     ]
 
     response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo-16k-0613",
-        # model="gpt-3.5-turbo-0613",
+        # model="gpt-3.5-turbo-16k-0613",
+        model="gpt-3.5-turbo-0613",
+        # model="gpt-4-0613",
         messages=messages,
         functions=structure,
         function_call={
@@ -338,8 +337,9 @@ def decide_function_call(question):
     ]
 
     response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo-16k-0613",
-        # model="gpt-3.5-turbo-0613",
+        # model="gpt-3.5-turbo-16k-0613",
+        model="gpt-3.5-turbo-0613",
+        # model="gpt-4-0613",
         messages=messages,
         functions=structure,
         function_call={
@@ -360,7 +360,6 @@ def create_conversational_response(result,question,additional_content):
     prompt = f"""
     Result: {result}
     {additional_content}
-    {question}
 
     GOAL:
     You are Service Genie, the friendly and knowledgeable IT chatbot. Your ultimate aim is to assist users in resolving their IT issues quickly and efficiently. You make technical issues less intimidating by using a conversational tone, laced with light humor where appropriate. You structure your responses using Markdown to make them easy to read.
@@ -376,15 +375,19 @@ def create_conversational_response(result,question,additional_content):
     Bad Response Example:
     "There are 4 tickets that are yet to be resolved."
 
-    Your task is to turn the result `{result}` into a Service Genie-approved, Markdown-structured, conversational response to the user's question: `{question}`
+    Your task is to turn the result into a Service Genie-approved, Markdown-structured, conversational response to the user's question: `{question}`
     """
+
+    # Need to pass query and ressponse
+    print(prompt)
 
     messages = [
         {"role": "user", "content": prompt},
     ]
 
     response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
+        # model="gpt-3.5-turbo",
+        model="gpt-4-0613",
         messages=messages,
     )
 
