@@ -28,6 +28,7 @@ class ATGENIE extends ActivityHandler {
             // make the bot start typing
             // not sure if this will work couldn't find the docs
             context.sendActivity(typing);
+            await new Promise(resolve => setTimeout(resolve, 10000));
             // await context.sendActivity(MessageFactory.text(replyText, replyText));
             await context.sendActivity(reply);
             await next();
