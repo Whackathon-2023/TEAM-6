@@ -45,9 +45,9 @@ async function fetchResponseFromPython(userText) {
     // Fetch the response from Python server
     const data = await response.json();
     console.log(`Recieved data from flask server json data is ${data}`);
-    console.log(`Response to give user is ${data.content.flat(Infinity).join('')}`)
+    console.log(`Response to give user is ${data.content}`)
     // data sometimes comes in weird formats like nested arrays flatten just flattens it out and .join makes it a string
-    return data.content.flat(Infinity).join('');
+    return data.content;
 }
 
 module.exports.ATGENIE = ATGENIE;
