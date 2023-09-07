@@ -64,20 +64,31 @@ def question():
     request_data = request.get_json()
     print(request_data)
     question = request_data['question']
-    function, result = uhhh_like_umm_reviewing_the_question(question)
-    if function == "generate_sql_for_fixed_columns":
-        # In this case, we want to query the database
-        print(f"SQL Query: {result['query_string']}")
-        result = query_database(result['query_string'])  # Can return None
+    function = decide_function_call(question)
+    print(f"Function called: {function}")
+    if function == None:
+        return jsonify({"content": "I don't know how to answer that question.","error": "No function was called."})
+    
+    elif function == "generate_sql_for_fixed_columns":
+        result = generate_sql_for_fixed_columns(question)
         if result is None:
-            return jsonify({"content": "I don't know how to answer that question."})
+            return jsonify({"content": "I don't know how to answer that question.","error": "No SQL query was generated."})
+        query_string = result['query_string']
+
+        result = query_database(query_string)  # Can return None
+        if result is None:
+            return jsonify({"content": "I don't know how to answer that question.","error": "No results were returned from the database."})
         print(f"Result: {result}")
+        # Turn into conversational response formatted as markdown
         return jsonify({"content": result})
-        # Need to turn conversational / markdown
+
     elif function == "extract_ticket_id_for_similarity_search":
         # We want to perform an vector similarity search
         # We first get the embedding for the ticket_id, then we perform a vector similarity search
-        print(f"Ticket ID: {result['ticket_id']}")
+        result = extract_ticket_id_for_similarity_search(question)
+        if result is None:
+            return jsonify({"content": "I don't know how to answer that question.","error": "No ticket ID was extracted."})
+        
         ticket_id = result['ticket_id']
         embedding = embeddings[ticket_id]
         most_similar = get_most_similar(ticket_id, embedding, embeddings, 3)
@@ -86,8 +97,13 @@ def question():
         print(f"Result: {result}")
         return jsonify({"content": result})
         # Need to turn conversational / markdown
+
     elif function == "extract_description_and_find_similarity":
         # We want to perform an vector similarity search on the ticket description
+
+        result = extract_description_and_find_similarity(question)
+        if result is None:
+            return jsonify({"content": "I don't know how to answer that question.","error": "No description was extracted."})
         print(f"Ticket Description: {result['ticket_description']}")
         ticket_description = result['ticket_description']
         embedding = process_embedding(ticket_description)  # Can return None
@@ -99,13 +115,15 @@ def question():
         print(f"Most similar tickets: {most_similar}")
         result = select_tickets(most_similar)
         print(f"Result: {result}")
+        # Return the top tickets as markdown, along with a conversational response
         return jsonify({"content": result})
+
     else:
         print("I don't know how to answer that question.")
         return jsonify({"content": "I don't know how to answer that question."})
-
-# Alana chose the name of the function
-def uhhh_like_umm_reviewing_the_question(question):
+    return jsonify({"content": "I don't know how to answer that question."})
+    
+def generate_sql_for_fixed_columns(question):
     structure = [
         {
             "name": "generate_sql_for_fixed_columns",
@@ -125,6 +143,41 @@ def uhhh_like_umm_reviewing_the_question(question):
                 "required": ["query_string", "explanation"]
             }
         },
+    ]
+
+    prompt = f"""
+    ```
+    {schema}
+    ```
+    GOAL:
+    You are Service Genie, an IT chatbot tthat calls functions to help answer a users question: `{question}`
+    """
+
+    messages = [
+        {"role": "user", "content": prompt},
+    ]
+
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo-16k-0613",
+        # model="gpt-3.5-turbo-0613",
+        messages=messages,
+        functions=structure,
+        function_call={
+            "name": "generate_sql_for_fixed_columns",
+        }
+    )
+
+    try:
+        text_string = response.choices[0].message.function_call.arguments
+        text_data = json.loads(text_string)
+        return text_data
+    except Exception as e:
+        print(response.choices[0].message.function_call.arguments)
+        print(e)
+        return None
+    
+def extract_ticket_id_for_similarity_search(question):
+    structure = [
         {
             "name": "extract_ticket_id_for_similarity_search",
             "description": "Identifies and extracts the ticket ID from the user's query to perform a similarity search using embeddings. Ticket ID: ITSD-******",
@@ -135,14 +188,49 @@ def uhhh_like_umm_reviewing_the_question(question):
                         "type": "string",
                         "description": "The extracted ticket ID that will be used for a similarity search."
                     },
-                    "explanation": {
-                        "type": "string",
-                        "description": "Explanation for why the ticket ID was extracted from the user's query."
-                    }
                 },
-                "required": ["ticket_id", "explanation"]
+                "required": ["ticket_id"]
             }
-        },
+        }
+    ]
+
+    prompt = f"""
+    ```
+    {schema}
+    ```
+    Example Question: "Find me a ticket similar to ITSD-123456."
+    Function Called: extract_ticket_id_for_similarity_search
+    Justification: The user's query includes an explicit ticket ID and asks for similar tickets. The task here is straightforward: extract the ticket ID and use it as a basis for a similarity search. No SQL query or natural language description is required.    GOAL:
+    You are Service Genie, an IT chatbot tthat calls functions to help answer a users question: `{question}`
+    """
+
+    print(prompt)
+
+    messages = [
+        {"role": "user", "content": prompt},
+    ]
+
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo-16k-0613",
+        # model="gpt-3.5-turbo-0613",
+        messages=messages,
+        functions=structure,
+        function_call={
+            "name": "extract_ticket_id_for_similarity_search",
+        }
+    )
+
+    try:
+        text_string = response.choices[0].message.function_call.arguments
+        text_data = json.loads(text_string)
+        return text_data
+    except Exception as e:
+        print(response.choices[0].message.function_call.arguments)
+        print(e)
+        return None
+    
+def extract_description_and_find_similarity(question):
+    structure = [
         {
             "name": "extract_description_and_find_similarity",
             "description": "Processes the user's natural language query to extract the core issue description.",
@@ -153,69 +241,21 @@ def uhhh_like_umm_reviewing_the_question(question):
                         "type": "string",
                         "description": "The extracted issue description that forms the basis for searching similar tickets. This is a cleaned-up and normalized version of the user's query, retaining only the crucial elements that define the problem. Example: 'User can't log into the wifi on their laptop after changing their password.'"
                     },
-                    "explanation": {
-                        "type": "string",
-                        "description": "Explanation for how the problem description was extracted and converted into an embedding."
-                    }
                 },
-                "required": ["description_embedding", "explanation"]
-            }
-        }
-    ]
-
-    working_structure = [
-        {
-            "name": "question_to_query",
-            "description": "This takes in a user's question and returns a SQLite query that get data to answer the question.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "sqlite_query": {
-                        "type": "string",
-                        "description": "A SQLite query that will return the data needed to answer the user's question."
-                    },
-                    "explanation": {
-                        "type": "string",
-                        "description": "A detailed explanation of why the query was generated."
-                    }
-                },
-                "required": ["sqlite_query", "explanation"]
-            }
-        },
-        {
-            "name": "extract_ticket_id",
-            "description": "Ticket ID: ITSD-****** - Extracts the ticket ID from a user's question when the question is in the format 'Find me a ticket similar to [ticket_id]'",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "ticket_id": {
-                        "type": "string",
-                        "description": "The ticket ID that was extracted from the user's question. Example: ITSD-******"
-                    },
-                }
-            }
-        },
-        {
-            "name": "extract_ticket_description",
-            "description": "Extracts the issue description from a user's query when the user is searching for tickets similar to a particular problem. The function uses natural language processing to identify the core issue from the query and disregards auxiliary words or phrases.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "ticket_description": {
-                        "type": "string",
-                        "description": "The extracted issue description that forms the basis for searching similar tickets. This is a cleaned-up and normalized version of the user's query, retaining only the crucial elements that define the problem. Example: 'User can't log into the wifi on their laptop after changing their password.'"
-                    },
-                },
-                "required": ["ticket_description"]
+                "required": ["description_embedding"]
             }
         }
     ]
 
     prompt = f"""
+    ```
     {schema}
-    
+    ```
+    Example Question: "A user can't log into the wifi. Find me a ticket that is similar to this problem."
+    Function Called: extract_description_and_find_similarity
+    Justification: The user describes a problem in natural language without referring to a specific ticket ID or database column. The problem description needs to be extracted, possibly cleaned up, and converted into an embedding for a similarity search.
     GOAL:
-    You must choose one of the functions to answer the user's question: {question}
+    You are Service Genie, an IT chatbot tthat calls functions to help answer a users question: `{question}`
     """
 
     messages = [
@@ -223,23 +263,84 @@ def uhhh_like_umm_reviewing_the_question(question):
     ]
 
     response = openai.ChatCompletion.create(
-        # model="gpt-3.5-turbo-16k-0613",
-        model="gpt-3.5-turbo-0613",
+        model="gpt-3.5-turbo-16k-0613",
+        # model="gpt-3.5-turbo-0613",
         messages=messages,
         functions=structure,
-        function_call="auto",
+        function_call={
+            "name": "extract_description_and_find_similarity",
+        }
     )
 
     try:
-        print(response.choices[0].message)
         text_string = response.choices[0].message.function_call.arguments
-        function_name = response.choices[0].message.function_call.name
         text_data = json.loads(text_string)
-        return function_name, text_data
+        return text_data
     except Exception as e:
         print(response.choices[0].message.function_call.arguments)
         print(e)
-        return None, None
+        return None
+
+# Decides which function to call
+def decide_function_call(question):
+    structure = [
+        {
+            "name": "decide_function_call",
+            "description": "Decides which function to call based on the user's question.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "function_name": {
+                        "type": "string",
+                        "enum": ["generate_sql_for_fixed_columns", "extract_ticket_id_for_similarity_search", "extract_description_and_find_similarity"],
+                        "description": "The name of the function that will be called to answer the user's question."
+                    },
+                }
+            }
+        }
+    ]
+    prompt = f"""
+    ```
+    {schema}
+    ```
+    Example Question: "How many unresolved tickets are there?"
+    Function Called: generate_sql_for_fixed_columns
+    Justification: The user's question specifically refers to a known column in the database, "unresolved tickets." The query can be answered directly with an SQL operation. There's no need for similarity search or text processing; the columns needed are explicitly stated
+
+    Example Question: "Find me a ticket similar to ITSD-123456."
+    Function Called: extract_ticket_id_for_similarity_search
+    Justification: The user's query includes an explicit ticket ID and asks for similar tickets. The task here is straightforward: extract the ticket ID and use it as a basis for a similarity search. No SQL query or natural language description is required.
+
+    Example Question: "A user can't log into the wifi. Find me a ticket that is similar to this problem."
+    Function Called: extract_description_and_find_similarity
+    Justification: The user describes a problem in natural language without referring to a specific ticket ID or database column. The problem description needs to be extracted, possibly cleaned up, and converted into an embedding for a similarity search.
+    GOAL:
+    You are Service Genie, an IT chatbot tthat calls functions to help answer a users question: `{question}`
+    """
+
+    print(prompt)
+
+    messages = [
+        {"role": "user", "content": prompt},
+    ]
+
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo-16k-0613",
+        # model="gpt-3.5-turbo-0613",
+        messages=messages,
+        functions=structure,
+        function_call={
+            "name": "decide_function_call",
+        }
+    )
+
+    try:
+        result = response.choices[0].message.function_call.arguments
+        function_name = json.loads(result)
+        return function_name['function_name']
+    except Exception as e:
+        print(e)
+        return None
 
 
 DATABASE_PATH = "database.db"
@@ -312,6 +413,7 @@ def process_embedding(text):
     except Exception as e:
         print(e)
         return None
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
