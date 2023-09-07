@@ -121,7 +121,7 @@ def question():
     else:
         print("I don't know how to answer that question.")
         return jsonify({"content": "I don't know how to answer that question."})
-    return jsonify({"content": "I don't know how to answer that question."})
+    # return jsonify({"content": "I don't know how to answer that question."})
     
 def generate_sql_for_fixed_columns(question):
     structure = [
@@ -255,7 +255,7 @@ def extract_description_and_find_similarity(question):
     Function Called: extract_description_and_find_similarity
     Justification: The user describes a problem in natural language without referring to a specific ticket ID or database column. The problem description needs to be extracted, possibly cleaned up, and converted into an embedding for a similarity search.
     GOAL:
-    You are Service Genie, an IT chatbot tthat calls functions to help answer a users question: `{question}`
+    You are Service Genie, an IT chatbot that calls functions to help answer a users question. The question is: `{question}`
     """
 
     messages = [
@@ -309,13 +309,13 @@ def decide_function_call(question):
 
     Example Question: "Find me a ticket similar to ITSD-123456."
     Function Called: extract_ticket_id_for_similarity_search
-    Justification: The user's query includes an explicit ticket ID and asks for similar tickets. The task here is straightforward: extract the ticket ID and use it as a basis for a similarity search. No SQL query or natural language description is required.
+    Justification: The user's query includes an explicit ticket ID and asks for similar tickets. The task here is straight forward: extract the ticket ID and use it as a basis for a similarity search. No SQL query or natural language description is required.
 
     Example Question: "A user can't log into the wifi. Find me a ticket that is similar to this problem."
     Function Called: extract_description_and_find_similarity
     Justification: The user describes a problem in natural language without referring to a specific ticket ID or database column. The problem description needs to be extracted, possibly cleaned up, and converted into an embedding for a similarity search.
     GOAL:
-    You are Service Genie, an IT chatbot tthat calls functions to help answer a users question: `{question}`
+    You are Service Genie, an IT chatbot that calls functions to help answer a users question. The question is: `{question}`
     """
 
     print(prompt)
