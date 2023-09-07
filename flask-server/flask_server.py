@@ -22,6 +22,8 @@ import sqlite3
 from dotenv import load_dotenv
 load_dotenv()
 
+PYTHON_EXECUTABLE = "temp/temp_file.py"
+
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 assert OPENAI_API_KEY, "OPENAI_API_KEY environment variable is missing from .env"
 openai.api_key = OPENAI_API_KEY
@@ -68,19 +70,19 @@ def question():
     function = decide_function_call(question)
     print(f"Function called: {function}")
     if function == None:
-        return jsonify({"content": "I don't know how to answer that question.","error": "No function was called."})
-    
+        return jsonify({"content": "I don't know how to answer that question.", "error": "No function was called."})
+
     elif function == "generate_sql_for_fixed_columns":
         result = generate_sql_for_fixed_columns(question)
         if result is None:
-            return jsonify({"content": "I don't know how to answer that question.","error": "No SQL query was generated."})
+            return jsonify({"content": "I don't know how to answer that question.", "error": "No SQL query was generated."})
         query_string = result['query_string']
         explanation = result['explanation']
         print(f"SQL Query: {query_string}")
         print(f"Explanation: {explanation}")
         result = query_database(query_string)  # Can return None
         if result is None:
-            return jsonify({"content": "I don't know how to answer that question.","error": "No results were returned from the database."})
+            return jsonify({"content": "I don't know how to answer that question.", "error": "No results were returned from the database."})
         print(f"Result: {result}")
         # Turn into conversational response formatted as markdown
         conversational_response = create_conversational_response(
@@ -93,8 +95,8 @@ def question():
         # We first get the embedding for the ticket_id, then we perform a vector similarity search
         result = extract_ticket_id_for_similarity_search(question)
         if result is None:
-            return jsonify({"content": "I don't know how to answer that question.","error": "No ticket ID was extracted."})
-        
+            return jsonify({"content": "I don't know how to answer that question.", "error": "No ticket ID was extracted."})
+
         ticket_id = result['ticket_id']
         embedding = embeddings[ticket_id]
         most_similar = get_most_similar(ticket_id, embedding, embeddings, 3)
@@ -109,7 +111,7 @@ def question():
 
         result = extract_description_and_find_similarity(question)
         if result is None:
-            return jsonify({"content": "I don't know how to answer that question.","error": "No description was extracted."})
+            return jsonify({"content": "I don't know how to answer that question.", "error": "No description was extracted."})
         print(f"Ticket Description: {result['ticket_description']}")
         ticket_description = result['ticket_description']
         embedding = process_embedding(ticket_description)  # Can return None
@@ -126,11 +128,161 @@ def question():
             result, question, ' **Sure! I have found some similar tickets regarding [issue] for your reference**')
         return jsonify({"content": conversational_response})
 
+    elif function == "generate_visuals":
+        # First, we generate a explanation query for what we are going to do
+        explanation = explanation_query(question)
+        if explanation is None:
+            return jsonify({"content": "I don't know how to answer that question.", "error": "No explanation was generated."})
+        print(f"Explanation: {explanation['explanation']}")
+        
+        # Then, we fetch the data using the query using `generate_sql_for_fixed_columns`
+        result = generate_sql_for_fixed_columns(f"{explanation['explanation']} {question}")
+        if result is None:
+            return jsonify({"content": "I don't know how to answer that question.", "error": "No SQL query was generated."})
+        print(f"SQL Query: {result['query_string']}")
+
+        # Then, we fetch the data using the query using `generate_sql_for_fixed_columns`
+        result = query_database(result['query_string'])
+        if result is None:
+            return jsonify({"content": "I don't know how to answer that question.", "error": "No results were returned from the database."})
+        print(f"Result: {result}")
+        
+        # Then, we generate a visual using the data
+        visual = generate_matplotlib_visual(result, question, explanation['explanation'])
+        if visual is None:
+            return jsonify({"content": "I don't know how to answer that question.", "error": "No visual was generated."})
+        print(f"Visual: {visual}")
+        code = visual['python_code']
+        description = visual['description']
+        file_path = visual['file_path']
+
+        # Saves code to PYTHON_EXECUTABLE
+        with open(PYTHON_EXECUTABLE, "w") as f:
+            f.write(code)
+
+        # Executes code
+        os.system(f"python3 {PYTHON_EXECUTABLE}")
+
+        # Uploads visual to share.sh and returns the link
+        url = os.popen(f"curl --upload-file {file_path} https://free.keep.sh").read().strip()
+        print(f"URL: {url}")
+
+        return jsonify({"content": description, "url": url+"/download"});
+
     else:
         print("I don't know how to answer that question.")
-        return jsonify({"content": "I don't know how to answer that question.","error": "No function was called."})
+        return jsonify({"content": "I don't know how to answer that question.", "error": "No function was called."})
     return jsonify({"content": "I don't know how to answer that question."})
-    
+
+def generate_matplotlib_visual(data, question,explanation):
+    structure = [
+        {
+            "name": "generate_matplotlib_visual",
+            "description": "This function creates a visual representation of data using Matplotlib. The generated visual is saved to a specified location, and the function provides a comprehensive description of what the visual represents.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "python_code": {
+                        "type": "string",
+                        "description": "This parameter should contain the complete Python code necessary for generating the visual. This includes import statements, data preparation steps, and Matplotlib commands for rendering the visual."
+                    },
+                    "file_path": {
+                        "type": "string",
+                        "description": "Indicates the absolute or relative file path where the generated visual will be saved. The path should include the filename and the extension (e.g., '/path/to/save/image.png')."
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Provides a explanation of what the generated visual aims to represent. This should include the type of visual (e.g., bar chart, line graph), the data being visualized, and any specific insights the visual is intended to convey."
+                    }
+                },
+                "required": ["python_code", "file_path"]
+            }
+        }
+    ]
+
+    prompt = f"""
+    DATA:
+    ```{data}```
+    GOAL:
+    The purpose of the visualisation is to {explanation}. It should be a .png file saved to the current directory.
+    You are Service Genie, an IT chatbot that calls functions to help answer a users question: `{question}`
+    """
+
+    messages = [
+        {"role": "user", "content": prompt},
+    ]
+
+    response = openai.ChatCompletion.create(
+        # model="gpt-3.5-turbo-16k-0613",
+        # model="gpt-3.5-turbo-0613",
+        model="gpt-4-0613",
+        messages=messages,
+        functions=structure,
+        function_call={
+            "name": "generate_matplotlib_visual",
+        }
+    )
+
+    try:
+        text_string = response.choices[0].message.function_call.arguments
+        text_data = json.loads(text_string)
+        return text_data
+    except Exception as e:
+        print(response.choices[0].message.function_call.arguments)
+        print(e)
+        return None
+
+def explanation_query(question):
+    structure = [
+        {
+            "name": "explanation_query",
+            "description": "Generates a detailed explanation of what the visualisation shows and why it was generated.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "explanation": {
+                        "type": "string",
+                        "description": "A detailed explanation of what the visualisation shows and why it was generated."
+                    }
+                },
+                "required": ["explanation"]
+            }
+        }
+    ]
+
+    prompt = f"""
+    ```
+    {schema}
+    ```
+    GOAL:
+    You are Service Genie, an IT chatbot that calls functions to help answer a users question: `{question}`
+    """
+
+    messages = [
+        {"role": "user", "content": prompt},
+    ]
+
+    response = openai.ChatCompletion.create(
+        # model="gpt-3.5-turbo-16k-0613",
+        model="gpt-3.5-turbo-0613",
+        # model="gpt-4-0613",
+        messages=messages,
+        functions=structure,
+        function_call={
+            "name": "explanation_query",
+        }
+    )
+
+    try:
+        text_string = response.choices[0].message.function_call.arguments
+        text_data = json.loads(text_string)
+        return text_data
+    except Exception as e:
+        print(response.choices[0].message.function_call.arguments)
+        print(e)
+        return None
+
+
 def generate_sql_for_fixed_columns(question):
     structure = [
         {
@@ -185,7 +337,8 @@ def generate_sql_for_fixed_columns(question):
         print(response.choices[0].message.function_call.arguments)
         print(e)
         return None
-    
+
+
 def extract_ticket_id_for_similarity_search(question):
     structure = [
         {
@@ -239,7 +392,8 @@ def extract_ticket_id_for_similarity_search(question):
         print(response.choices[0].message.function_call.arguments)
         print(e)
         return None
-    
+
+
 def extract_description_and_find_similarity(question):
     structure = [
         {
@@ -294,6 +448,8 @@ def extract_description_and_find_similarity(question):
         return None
 
 # Decides which function to call
+
+
 def decide_function_call(question):
     structure = [
         {
@@ -304,13 +460,19 @@ def decide_function_call(question):
                 "properties": {
                     "function_name": {
                         "type": "string",
-                        "enum": ["generate_sql_for_fixed_columns", "extract_ticket_id_for_similarity_search", "extract_description_and_find_similarity"],
+                        "enum": [
+                            "generate_sql_for_fixed_columns",
+                            "extract_ticket_id_for_similarity_search",
+                            "extract_description_and_find_similarity",
+                            "generate_visuals"
+                        ],
                         "description": "The name of the function that will be called to answer the user's question."
                     },
                 }
             }
         }
     ]
+
     prompt = f"""
     ```
     {schema}
@@ -326,6 +488,11 @@ def decide_function_call(question):
     Example Question: "A user can't log into the wifi. Find me a ticket that is similar to this problem."
     Function Called: extract_description_and_find_similarity
     Justification: The user describes a problem in natural language without referring to a specific ticket ID or database column. The problem description needs to be extracted, possibly cleaned up, and converted into an embedding for a similarity search.
+    
+    Example Question: "Show me a graph of how many tickets each user has answered."
+    Function Called: generate_visuals
+    Justification: The user specifically requests a visual representation of data regarding ticket distribution among users. The task here is to generate the appropriate visual (e.g., a bar graph) to fulfill the user's request.
+
     GOAL:
     You are Service Genie, an IT chatbot tthat calls functions to help answer a users question: `{question}`
     """
@@ -355,7 +522,8 @@ def decide_function_call(question):
         print(e)
         return None
 
-def create_conversational_response(result,question,additional_content):
+
+def create_conversational_response(result, question, additional_content):
     # Turn into conversational response formatted as markdown
     prompt = f"""
     Result: {result}
@@ -467,7 +635,7 @@ def process_embedding(text):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(port=5000)
 
 """
 structure = [
