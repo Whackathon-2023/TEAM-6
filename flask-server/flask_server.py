@@ -37,8 +37,8 @@ openai.api_key = OPENAI_API_KEY
 today = date.today()
 
 schema = '''
-{"JIRA_ITSD_FY23_FULL":[{"Column Name":"Summary","Data Type":"TEXT"},{"Column Name":"Issue_key","Data Type":"TEXT"},{"Column Name":"Issue_id","Data Type":"REAL"},{"Column Name":"Issue_Type","Data Type":"TEXT","Enumerations":["Service Request","Purchase","Incident","Access","Change","Problem"],"Comments":"This is an enumerated field."},{"Column Name":"Status","Data Type":"TEXT","Enumerations":["Resolved","With Support","New","Procuring","With Approver","With Customer","Approved","Configuring"],"Comments":"This is an enumerated field."},{"Column Name":"Project_key","Data Type":"TEXT","Enumerations":["ITSD"],"Comments":"This is an enumerated field."},{"Column Name":"Project_name","Data Type":"TEXT","Enumerations":["IT Service Desk"],"Comments":"This is an enumerated field."},{"Column Name":"Priority","Data Type":"TEXT","Enumerations":["Low","High","Medium","Highest","Lowest","Blocker"],"Comments":"This is an enumerated field."},{"Column Name":"Resolution","Data Type":"TEXT","Enumerations":["Done","Withdrawn","Won't Do","Duplicate","Cannot Reproduce","Declined","Deferred","Rejected","Failed"],"Comments":"This is an enumerated field."},{"Column Name":"Assignee","Data Type":"TEXT"},{"Column Name":"Reporter","Data Type":"TEXT"},{"Column Name":"Creator","Data Type":"TEXT"},{"Column Name":"Created","Data Type":"TIMESTAMP"},{"Column Name":"Updated","Data Type":"TIMESTAMP"},{"Column Name":"Last_Viewed","Data Type":"TIMESTAMP"},{"Column Name":"Resolved","Data Type":"TIMESTAMP"},{"Column Name":"Component_s","Data Type":"TEXT"},{"Column Name":"Labels","Data Type":"TEXT"},{"Column Name":"Labels_1","Data Type":"TEXT"},{"Column Name":"Labels_2","Data Type":"TEXT"},{"Column Name":"Labels_3","Data Type":"TEXT","Enumerations":["Spoof","SOC-Incidents","PhishingIncident","ThirdPartyCyberIncident","NoMFAloginIncident","Spark","SuspiciousActivity","HybridSOC-Escalations"],"Comments":"This is an enumerated field."},{"Column Name":"Labels_4","Data Type":"TEXT","Enumerations":["Upguard","Spoof","PhishingIncident"],"Comments":"This is an enumerated field."},{"Column Name":"Custom_field_Access_Type","Data Type":"TEXT","Enumerations":["Contractor Extension","Contractor","AD Group"],"Comments":"This is an enumerated field."},{"Column Name":"Custom_field_Account","Data Type":"TEXT"},{"Column Name":"Custom_field_Activity","Data Type":"TEXT","Enumerations":["IT","Sales"],"Comments":"This is an enumerated field."},{"Column Name":"Custom_field_Assignment_Group","Data Type":"TEXT"},{"Column Name":"Custom_field_Business_Unit","Data Type":"TEXT","Enumerations":["Fertilisers","Shared Services","Kleenheat","Australian Vinyls","Chemicals","Decipher"],"Comments":"This is an enumerated field."},{"Column Name":"Custom_field_Category","Data Type":"TEXT","Enumerations":["User Access","Client Application","Computer","Mobile Device","Business System","Peripheral Device","Cyber Security","Server Infrastructure","Network"],"Comments":"This is an enumerated field."},{"Column Name":"Custom_field_ReporterBU","Data Type":"TEXT","Enumerations":["Company: Fertilisers, ","Company: Sodium Cyanide, ","Company: Shared Services, ","Company: Kleenheat, ","Company: Ammonia/AN, ","Company: Support Services, ","Company: Australian Vinyls, ","Company: Chemicals, ","Company: Decipher, "],"Comments":"This is an enumerated field."},{"Column Name":"Custom_field_ReporterDivision","Data Type":"TEXT"}]}
-Tickets are considered closed only when their status is 'Resolved.', AVG(JULIANDAY(Resolved) - JULIANDAY(Created)) will return the average number of days it takes to resolve a ticket. The assignee is the person who is currently assigned to the ticket. The reporter is the person who reported the ticket. The creator is the person who created the ticket.
+{"JIRA_ITSD_FY23_FULL":[{"Column Name":"Summary","Data Type":"TEXT"},{"Column Name":"Issue_key","Data Type":"TEXT"},{"Column Name":"Issue_id","Data Type":"REAL"},{"Column Name":"Issue_Type","Data Type":"TEXT","Enumerations":["Service Request","Purchase","Incident","Access","Change","Problem"],"Comments":"This is an enumerated field."},{"Column Name":"Status","Data Type":"TEXT","Enumerations":["Resolved","With Support","New","Procuring","With Approver","With Customer","Approved","Configuring"],"Comments":"This is an enumerated field."},{"Column Name":"Project_key","Data Type":"TEXT","Enumerations":["ITSD"],"Comments":"This is an enumerated field."},{"Column Name":"Project_name","Data Type":"TEXT","Enumerations":["IT Service Desk"],"Comments":"This is an enumerated field."},{"Column Name":"Priority","Data Type":"TEXT","Enumerations":["Low","High","Medium","Highest","Lowest","Blocker"],"Comments":"This is an enumerated field."},{"Column Name":"Resolution","Data Type":"TEXT","Enumerations":["Done","Withdrawn","Won't Do","Duplicate","Cannot Reproduce","Declined","Deferred","Rejected","Failed"],"Comments":"This is an enumerated field."},{"Column Name":"Assignee","Data Type":"TEXT"},{"Column Name":"Reporter","Data Type":"TEXT"},{"Column Name":"Creator","Data Type":"TEXT"},{"Column Name":"Created","Data Type":"TIMESTAMP"},{"Column Name":"Updated","Data Type":"TIMESTAMP"},{"Column Name":"Last_Viewed","Data Type":"TIMESTAMP"},{"Column Name":"Resolved","Data Type":"TIMESTAMP"},{"Column Name":"Component_s","Data Type":"TEXT"},{"Column Name":"Labels","Data Type":"TEXT"},{"Column Name":"Labels_1","Data Type":"TEXT"},{"Column Name":"Labels_2","Data Type":"TEXT"},{"Column Name":"Labels_3","Data Type":"TEXT","Enumerations":["Spoof","SOC-Incidents","PhishingIncident","ThirdPartyCyberIncident","NoMFAloginIncident","Spark","SuspiciousActivity","HybridSOC-Escalations"],"Comments":"This is an enumerated field."},{"Column Name":"Labels_4","Data Type":"TEXT","Enumerations":["Upguard","Spoof","PhishingIncident"],"Comments":"This is an enumerated field."},{"Column Name":"Custom_field_Access_Type","Data Type":"TEXT","Enumerations":["Contractor Extension","Contractor","AD Group"],"Comments":"This is an enumerated field."},{"Column Name":"Custom_field_Account","Data Type":"TEXT"},{"Column Name":"Custom_field_Activity","Data Type":"TEXT","Enumerations":["IT","Sales"],"Comments":"This is an enumerated field."},{"Column Name":"Custom_field_Assignment_Group","Data Type":"TEXT"},{"Column Name":"Custom_field_Business_Unit","Data Type":"TEXT","Enumerations":["Fertilisers","Shared Services","Kleenheat","Australian Vinyls","Chemicals","Decipher"],"Comments":"This is an enumerated field."},{"Column Name":"Custom_field_Category","Data Type":"TEXT","Enumerations":["User Access","Client Application","Computer","Mobile Device","Business System","Peripheral Device","Cyber Security","Server Infrastructure","Network"],"Comments":"This is an enumerated field."},{"Column Name":"Custom_field_ReporterBU","Data Type":"TEXT","Enumerations":["Company: Fertilisers, ","Company: Sodium Cyanide, ","Company: Shared Services, ","Company: Kleenheat, ","Company: Ammonia/AN, ","Company: Support Services, ","Company: Australian Vinyls, ","Company: Chemicals, ","Company: Decipher, "],"Comments":"This is an enumerated field."},{"Column Name":"Custom_field_ReporterDivision","Data Type":"TEXT"},{"Column Name: Time_To_Complete_Hours","Data Type":"REAL","Comments":"This is a calculated field of how long a ticket took to resolve, if it is empty the ticket has not been resolved'}]}
+Tickets are considered closed only when their status is 'Resolved.', The time it took to finish a ticket can be found in the "Time_To_Complete_Hours column, this value is in hours. The assignee is the person who is currently assigned to the ticket. The reporter is the person who reported the ticket. The creator is the person who created the ticket.
 The important fields are Summary, Status, Assignee, Reporter, Created, Custom_field_ReporterBU, Custom_field_ReporterDivision
 Tickets are considered closed only when their status is 'Resolved.', The column Time_To_Complete_hours will return the average number of hours it took to resolve a ticket. The assignee is the person who is currently assigned to the ticket. The reporter is the person who reported the ticket. The creator is the person who created the ticket.
 The current date is ''' + str(today)
@@ -69,7 +69,7 @@ def question():
     function = decide_function_call(question)
     print(f"Function called: {function}")
     if function == None:
-        return jsonify({"content": "I don't know how to answer that question.","error": "No function was called."})
+        return jsonify({"content": "I don't know how to answer that question. Try rephrasing the question?","error": "No function was called."})
     
     elif function == "generate_sql_for_fixed_columns":
         result = generate_sql_for_fixed_columns(question)
@@ -126,11 +126,15 @@ def question():
         conversational_response = create_conversational_response(
             result, question, '')
         return jsonify({"content": conversational_response})
+    
+    elif function == "no_functon_called":
+        result = no_functon_called(question)
+        return jsonify({"content": result})
 
     else:
         print("I don't know how to answer that question.")
         return jsonify({"content": "I don't know how to answer that question.","error": "No function was called."})
-    return jsonify({"content": "I don't know how to answer that question."})
+    
     
 def generate_sql_for_fixed_columns(question):
     structure = [
@@ -305,7 +309,7 @@ def decide_function_call(question):
                 "properties": {
                     "function_name": {
                         "type": "string",
-                        "enum": ["generate_sql_for_fixed_columns", "extract_ticket_id_for_similarity_search", "extract_description_and_find_similarity"],
+                        "enum": ["generate_sql_for_fixed_columns", "extract_ticket_id_for_similarity_search", "extract_description_and_find_similarity", "no_functon_called"],
                         "description": "The name of the function that will be called to answer the user's question."
                     },
                 }
@@ -328,7 +332,11 @@ def decide_function_call(question):
     Function Called: extract_description_and_find_similarity
     Justification: The user describes a problem in natural language without referring to a specific ticket ID or database column. The problem description needs to be extracted, possibly cleaned up, and converted into an embedding for a similarity search.
     GOAL:
-    You are Service Genie, an IT chatbot tthat calls functions to help answer a users question: `{question}`
+    You are Service Genie, an IT chatbot that calls functions to help answer a users question: `{question}`
+
+    Example Question: What is the capital of Spain?
+    Function called: no_function_called
+    Justification: This question has nothing to do with service tickets or the service desk. We can't answer this question.
     """
 
     print(prompt)
@@ -363,7 +371,7 @@ def create_conversational_response(result,question,additional_content):
     {additional_content}
 
     GOAL:
-    You are Service Genie, the friendly and knowledgeable IT chatbot. Your ultimate aim is to assist users in resolving their IT issues quickly and efficiently.
+    You are Service Genie, a friendly and knowledgeable IT chatbot. Your ultimate aim is to assist users in resolving their IT issues quickly and efficiently.
 
     Attributes:
     - Knowledgeable but not condescending
@@ -471,6 +479,11 @@ def process_embedding(text):
     except Exception as e:
         print(e)
         return None
+    
+
+def no_functon_called(text):
+    return "Sorry but that question has nothing to do with service tickets. Try rephrasing your question"
+
 
 
 if __name__ == '__main__':

@@ -5,7 +5,6 @@ import('node-fetch').then(module => {
   fetch = module.default;
 });
 
-
 class ATGENIE extends ActivityHandler {
     constructor() {
         super();
@@ -19,7 +18,7 @@ class ATGENIE extends ActivityHandler {
         });
 
         this.onMembersAdded(async (context, next) => {
-            const welcomeText = 'Welcome, I am ATGenie ask me anything about service tickets';
+            const welcomeText = 'Welcome, I am ATGenie. Ask me anything about service tickets';
             const membersAdded = context.activity.membersAdded;
             for (let cnt = 0; cnt < membersAdded.length; ++cnt) {
                 if (membersAdded[cnt].id !== context.activity.recipient.id) {
