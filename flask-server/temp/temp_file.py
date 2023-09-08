@@ -1,22 +1,19 @@
-import pandas as pd
 import matplotlib.pyplot as plt
 
-# Load the dataset
-jira_data = pd.read_csv('JIRA_ITSD_FY23_FULL.csv')
+# Define the data
+data = [(None, 21135), ('User Access', 2321), ('Business System', 2294), ('Computer', 606), ('Client Application', 517)]
 
-# Filter the data to only consider 'Resolved' tickets
-resolved_tickets = jira_data[jira_data['Status'] == 'Resolved']
+# Unpack the data
+labels, values = zip(*data)
 
-# Count the number of tickets for each category
-ticket_counts = resolved_tickets['Issue_Type'].value_counts()
+# Create the bar chart
+plt.bar(labels, values)
 
-# Create the log-linear graph
-plt.figure(figsize=(10,6))
-plt.bar(ticket_counts.index, ticket_counts.values)
-plt.yscale('log')
-plt.xlabel('Issue Types')
-plt.ylabel('Counts')
-plt.title('Log-Linear Plot of Issue Types vs Counts')
-plt.xticks(rotation=90)
-plt.grid(True)
-plt.savefig('issue_type_distribution.png')
+# Add a title and labels to the axes
+plt.title('5 Most Common Problems for Service Desk Employees')
+plt.xlabel('Problem Category')
+plt.ylabel('Frequency')
+
+# Save the figure
+plt.savefig('common_problems.png')
+plt.close()

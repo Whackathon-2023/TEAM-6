@@ -165,7 +165,9 @@ def question():
             f.write(code)
 
         # Executes code
-        os.system(f"python3 {PYTHON_EXECUTABLE}")
+        os.system(f"python {PYTHON_EXECUTABLE}")
+
+        # eval(code)
 
         # Uploads visual to share.sh and returns the link
         url = os.popen(f"curl --upload-file {file_path} https://free.keep.sh").read().strip()

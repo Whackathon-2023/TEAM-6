@@ -29,7 +29,9 @@ class ATGENIE extends ActivityHandler {
             context.sendActivity(typing); 
 
             const response = await fetchResponseFromPython(userText);
-            const replyText = response.content;
+            let replyText = response.content;
+            // removes spaces from the start of the string
+            replyText = replyText.replace(/^\s+/g, '');
             const url = response.url;
 
             const reply = { type: ActivityTypes.Message };
@@ -37,7 +39,7 @@ class ATGENIE extends ActivityHandler {
                 reply.attachments = [this.getInternetAttachment(replyText.name, contentType, url)];
                 
             }
-            reply.text = "****" + replyText + "****";
+            reply.text = replyText;
  
             // this will be blank if theres no image if theres an image 
 
@@ -47,17 +49,19 @@ class ATGENIE extends ActivityHandler {
             await next();
         });
 
-        this.onMembersAdded(async (context, next) => {
-            const welcomeText = "## Hey there, I'm ATGENIE\n# Here are some things I can do:\n- Find similar tickets\n- Give insights into service desk members\n- Retrieve or summarize data from old tickets\n- Send me a message to get started!";
+        // for welcome text
+        
+        // this.onMembersAdded(async (context, next) => {
+            // const welcomeText = "## Hey there, I'm ATGENIE\n# Here are some things I can do:\n- Find similar tickets\n- Give insights into service desk members\n- Retrieve or summarize data from old tickets\n- Send me a message to get started!";
 
-            const membersAdded = context.activity.membersAdded;
-            for (let cnt = 0; cnt < membersAdded.length; ++cnt) {
-                if (membersAdded[cnt].id !== context.activity.recipient.id) {
-                    await context.sendActivity(MessageFactory.text(welcomeText, welcomeText));
-                }
-            }                                                       
-            await next();
-        });
+        //     const membersAdded = context.activity.membersAdded;
+        //     for (let cnt = 0; cnt < membersAdded.length; ++cnt) {
+        //         if (membersAdded[cnt].id !== context.activity.recipient.id) {
+        //             await context.sendActivity(MessageFactory.text(welcomeText, welcomeText));
+        //         }
+        //     }                                                       
+        //     await next();
+        // });
 
 
 
