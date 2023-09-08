@@ -152,7 +152,8 @@ def question():
         print(f"Result: {result}")
         
         # Then, we generate a visual using the data
-        visual = generate_matplotlib_visual(result, question, explanation['explanation'])
+        visual = generate_matplotlib_visual(
+            result[:500], question, explanation['explanation'])
         if visual is None:
             return jsonify({"content": "I don't know how to answer that question.", "error": "No visual was generated."})
         print(f"Visual: {visual}")
